@@ -1,103 +1,90 @@
 /*
-Probability of Knight to remain in the chessboard
+Let's have an N X N chess board and a knight is at the position (x,y). It is provided that the knight can take 'k' steps only, for each step it can choose any one out of the 8 directions at random.
+We need to find the probability that after taking K steps and still the knight is on the chess board, but keeping one thing in mind that once the knight leaves the chess board it can't enter again.
 
-Given an NxN chessboard and a Knight at position (x,y). The Knight has to take exactly K steps, where at each step it chooses any of the 8 directions uniformly at random. What is the probability that the Knight remains in the chessboard after taking K steps, with the condition that it can’t enter the board again once it leaves it.
+Example:
 
-Examples:
+We have an 8x8 chessboard, current position of the knight is at (x, y) = (0, 0).
+For each step, the knight can choose 1 out of 8 directions. 
 
-Let's take:
-8x8 chessboard,
-initial position of the knight : (0, 0),
-number of steps : 1
-At each step, the Knight has 8 different positions to choose from. 
+So, from (0, 0) there are only 2 out of 8 directions possible to keep the knight inside the board and for all other directions the knight will go outside,
+therefor the probability = 2/8 = 0.25
 
-If it starts from (0, 0), after taking one step it will lie inside the
-board only at 2 out of 8 positions, and will lie outside at other positions.
-So, the probability is 2/8 = 0.25
+Now after taking k steps the knight is at position (x, y). There are 8 possible ways by which the Knight can reach to (x, y) in one step, and those ways are 
+(x-1, y+2), (x+1, y-2), (x+2, y+1), (x-2, y-1), (x+1, y+2), (x-1, y-2), (x+1, y-2), (x-2, y+1).
 
-One thing that we can observe is that at every step the Knight has 8 choices to choose from. Suppose, the Knight has to take k steps and after taking the Kth step the knight reaches (x,y). There are 8 different positions from where the Knight can reach to (x,y) in one step, and they are: (x+1,y+2), (x+2,y+1), (x+2,y-1), (x+1,y-2), (x-1,y-2), (x-2,y-1), (x-2,y+1), (x-1,y+2).
-What if we already knew the probabilities of reaching these 8 positions after K-1 steps? Then, the final probability after K steps will simply be equal to the (Σ probability of reaching each of these 8 positions after K-1 steps)/8;
-Here we are dividing by 8 because each of these 8 positions have 8 choices and position (x,y) is one of the choice.
-For the positions that lie outside the board, we will either take their probabilities as 0 or simply neglect it.
+What if we already knew the probabilities of reaching these 8 positions after K-1 steps? 
+Then, the final probability after K steps will simply be equal to the (Σ probability of reaching each of these 8 positions after K-1 steps)/8;
+Divison by 8 is because each position on board have total of eight choices and (x, y) is one of them.
+Probability for the positions outside the chess board will be equal to 0 or we can simply neglect it.
 
-Since, we need to keep track of the probabilities at each position for every number of steps, we need Dynamic Programming to solve this problem.
-We are going to take an array dp[x][y][steps] which will store the probability of reaching (x,y) after (steps) number of moves.
-Base case : if number of steps is 0, then the probability that the Knight will remain inside the board is 1.
 
-Here is the implementation :
+We are required to keep track for the probabiities of each position for every number of steps and that's why it becomes a dynamic programming problem.
+For that we will take an array dp[x][y][steps] to store the probability for reaching (x, y) after [steps].
+We can take base case as..if the no. of steps is 0, then the knight will be inside the board with probability = 1.
+
+Implementation :
 */
 
-// C++ program to find the probability of the 
-// Knight to remain inside the chessboard after 
-// taking exactly K number of steps 
 #include <bits/stdc++.h> 
 using namespace std; 
-  
-// size of the chessboard 
 #define N 8 
+int xx[] = { 1, 2, 2, 1, -1, -2, -2, -1 }; 
+int xy[] = { 2, 1, -1, -2, -2, -1, 1, 2 }; 
   
-// direction vector for the Knight 
-int dx[] = { 1, 2, 2, 1, -1, -2, -2, -1 }; 
-int dy[] = { 2, 1, -1, -2, -2, -1, 1, 2 }; 
-  
-// returns true if the knight is inside the chessboard 
-bool inside(int x, int y) 
+
+bool in(int a, int b) 
 { 
-    return (x >= 0 and x < N and y >= 0 and y < N); 
+    return (a >= 0 and a < N and b >= 0 and b < N); 
 } 
   
-// Bottom up approach for finding the probability to 
-// go out of chessboard. 
-double findProb(int start_x, int start_y, int steps) 
+double fProb(int x, int y, int ss) 
 { 
-    // dp array 
-    double dp1[N][N][N]; 
+   
+    double d1[N][N][N]; 
   
-    // for 0 number of steps, each position 
-    // will have probability 1 
-    for (int i = 0; i < N; ++i) 
-        for (int j = 0; j < N; ++j) 
-            dp1[i][j][0] = 1; 
+    for (int e = 0; e < N; ++e) 
+        for (int f = 0; f < N; ++f) 
+            d1[e][f][0] = 1; 
   
-    // for every number of steps s 
-    for (int s = 1; s <= steps; ++s) 
+    
+    for (int s = 1; s <= ss; ++s) 
     { 
-        // for every position (x,y) after 
-        // s number of steps 
+        
         for (int x = 0; x < N; ++x) 
         { 
             for (int y = 0; y < N; ++y) 
             { 
                 double prob = 0.0; 
   
-                // for every position reachable from (x,y) 
+                
                 for (int i = 0; i < 8; ++i) 
                 { 
-                    int nx = x + dx[i]; 
-                    int ny = y + dy[i]; 
+                    int nx = x + xx[i]; 
+                    int ny = y + xy[i]; 
   
-                    // if this position lie inside the board 
-                    if (inside(nx, ny)) 
-                        prob += dp1[nx][ny][s-1] / 8.0; 
+                    
+                    if (in(nx, ny)) 
+                        prob += d1[nx][ny][s-1] / 8.0; 
                 } 
   
-                // store the result 
-                dp1[x][y][s] = prob; 
+                
+                d1[x][y][s] = prob; 
             } 
         } 
     } 
   
-    // return the result 
-    return dp1[start_x][start_y][steps]; 
+    
+    return d1[x][y][ss]; 
 } 
   
-// Driver program 
+
 int main() 
 { 
-    // number of steps 
+    
     int K = 3; 
   
-    cout << findProb(0, 0, K) << endl; 
+    cout << fProb(0, 0, K) << endl; 
   
     return 0; 
 } 
